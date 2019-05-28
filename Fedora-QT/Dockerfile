@@ -1,4 +1,4 @@
-FROM fedora:25
+FROM fedora:25 AS builder
 
 MAINTAINER Justin Hammond <justin@dynam.ac>
 
@@ -14,3 +14,16 @@ RUN dnf update -y && \
 	cd /opt/qt-build && \
 	make -j28 && \
 	make install
+	
+FROM fedora:25
+
+MAINTAINER Justin Hammond <justin@dynam.ac>
+
+RUN dnf update -y && \
+	dnf groupinstall 'Development Tools' -y && \
+	dnf install wget mc joe xz which gcc-c++ gperf bison flex openssl-devel mesa-libGL-devel libXrender-devel libxkbcommon-devel libXcomposite-devel libXcursor-devel libXi-devel libinput-devel freetype-devel fontconfig-devel -y
+WORKDIR /opt
+COPY --from=builder /opt/Qt /opt/Qt
+RUN echo "PATH=$PATH:/opt/Qt/5.12.3/bin" > /etc/profile.d/qt.sh && echo "export PATH" >> /etc/profile.d/qt.sh
+	
+	

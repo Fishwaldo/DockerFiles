@@ -45,7 +45,7 @@ RUN chmod u+rx,g+rx,o+rx,a-w /opt/docker-entrypoint.sh && \
 # RUN
 #
 EXPOSE 2990
-USER worker
+#USER worker
 ENV MAVEN_REPOSITORY_MIRROR "false"
 ENV JAVA_HOME /opt/jdk
 ENV PATH ${PATH}:/opt/atlassian-plugin-sdk-${ATLS_VERSIN}/bin/:/opt/jdk/bin/

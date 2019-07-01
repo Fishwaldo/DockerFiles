@@ -17,8 +17,7 @@ FROM raspbian/stretch:041518
 
 MAINTAINER Justin Hammond <justin@dynam.ac>
 
-RUN apt-get update && apt-get -y upgrade && apt-get -y install build-essential git joe mc
-	
+RUN apt-get update && apt-get -y upgrade && apt-get -y install build-essential git joe mc libwayland-dev libx11-xcb-dev libfontconfig1-dev libinput-dev libfreetype6-dev libdbus-1-dev libglib2.0-dev libraspberrypi-dev libx11-dev libxext-dev libxkbcommon-x11-dev
 
 WORKDIR /opt
 COPY --from=builder /opt/Qt /opt/Qt

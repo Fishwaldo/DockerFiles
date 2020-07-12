@@ -33,5 +33,7 @@ RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 ARG distcchosts=''
 ENV DISTCC_HOSTS=$distcchosts
 RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
-	&& make clean \
-	&& make CC=distcc CXX=distcc -j 6
+	&& cd qtbase/qmake \
+	&& make -j 2 \
+	&& cd ../../ \
+	&& make CC=distcc CXX=distcc -j 12

@@ -18,7 +18,9 @@ WORKDIR /opt/source/
 RUN wget https://download.qt.io/official_releases/qt/5.12/5.12.9/single/qt-everywhere-src-5.12.9.tar.xz \
 	&& tar -xf qt-everywhere-src-5.12.9.tar.xz
 RUN cd /opt/source/qt-everywhere-src-5.12.9 \
-	&& ./configure \
+	&& mkdir build \
+	&& cd build \
+	&& ../configure \
 	-recheck-all \
 	-opensource \
 	-confirm-license \
@@ -31,4 +33,5 @@ RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 ARG distcchosts=''
 ENV DISTCC_HOSTS=$distcchosts
 RUN cd /opt/source/qt-everywhere-src-5.12.9 \
+	&& make clean \
 	&& make CC=distcc CXX=distcc -j 6

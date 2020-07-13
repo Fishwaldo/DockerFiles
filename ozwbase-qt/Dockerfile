@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:buster-slim as builder
 
 RUN apt -y update && apt upgrade && apt -y install joe mc build-essential \
 	distcc wget debhelper autotools-dev libdbus-1-dev libxcb1-dev \
@@ -17,6 +17,9 @@ RUN mkdir /opt/source/
 WORKDIR /opt/source/
 RUN wget https://download.qt.io/official_releases/qt/5.12/5.12.9/single/qt-everywhere-src-5.12.9.tar.xz \
 	&& tar -xf qt-everywhere-src-5.12.9.tar.xz
+ARG distcchosts=''
+ENV DISTCC_HOSTS=$distcchosts
+RUN cd /usr/local/bin && ln /usr/bin/distcc gcc && ln /usr/bin/distcc g++
 RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 	&& mkdir build \
 	&& cd build \
@@ -30,10 +33,27 @@ RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 	--prefix=/opt/qt/5.12.9/ \
 	-nomake examples \
 	-nomake tests 
-ARG distcchosts=''
-ENV DISTCC_HOSTS=$distcchosts
 RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
-	&& cd qtbase/qmake \
-	&& make -j 2 \
-	&& cd ../../ \
-	&& make CC=distcc CXX=distcc -j 12
+	&& make -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
+	&& make install
+RUN apt -y install git
+RUN git clone https://github.com/qt/qtmqtt.git \
+	&& cd qtmqtt \
+	&& git checkout 5.12.9 \
+	&& /opt/qt/5.12.9/bin/qmake QT_BUILD_PARTS="libs tools" CONFIG+=release\
+	&& make \
+	&& make install	
+RUN strip --remove-section=.note.ABI-tag /opt/qt/*/lib/libQt5Core.so.5
+
+FROM debian:buster-slim
+
+LABEL maintainer="justin@dynam.ac"
+WORKDIR /opt
+
+RUN apt update && \
+	apt -y install joe mc git build-essential \
+        distcc wget
+
+COPY --from=builder /opt/qt/* /opt/qt/
+

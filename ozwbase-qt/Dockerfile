@@ -33,8 +33,44 @@ RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 	--prefix=/opt/qt/5.12.9/ \
 	-nomake examples \
 	-nomake tests 
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
+
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtbase -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qttools -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtdeclarative -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtimageformats -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtmultimedia -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtscript -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtsensors -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qt3d -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtconnectivity -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtgamepad -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtlocation -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtquickcontrols2 -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtscxml -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtserialbus -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtwayland -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtxmlpatterns -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
+	&& make module-qtwebengine -j 12
+RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
 	&& make -j 12
+
 RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
 	&& make install
 RUN apt -y install git
@@ -46,14 +82,14 @@ RUN git clone https://github.com/qt/qtmqtt.git \
 	&& make install	
 RUN strip --remove-section=.note.ABI-tag /opt/qt/*/lib/libQt5Core.so.5
 
-FROM debian:buster-slim
-
-LABEL maintainer="justin@dynam.ac"
-WORKDIR /opt
-
-RUN apt update && \
-	apt -y install joe mc git build-essential \
-        distcc wget
-
-COPY --from=builder /opt/qt/* /opt/qt/
+#FROM debian:buster-slim
+#
+#LABEL maintainer="justin@dynam.ac"
+#WORKDIR /opt
+#
+#RUN apt update && \
+#	apt -y install joe mc git build-essential \
+#        distcc wget
+#
+#COPY --from=builder /opt/qt/* /opt/qt/
 

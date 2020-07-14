@@ -82,14 +82,16 @@ RUN git clone https://github.com/qt/qtmqtt.git \
 	&& make install	
 RUN strip --remove-section=.note.ABI-tag /opt/qt/*/lib/libQt5Core.so.5
 
-#FROM debian:buster-slim
-#
-#LABEL maintainer="justin@dynam.ac"
-#WORKDIR /opt
-#
-#RUN apt update && \
-#	apt -y install joe mc git build-essential \
-#        distcc wget
-#
-#COPY --from=builder /opt/qt/* /opt/qt/
+FROM debian:buster-slim
+
+LABEL maintainer="justin@dynam.ac"
+WORKDIR /opt
+
+RUN apt update && \
+	apt -y install joe mc git build-essential \
+        distcc wget libgl1 libpng16-16 libharfbuzz0b libxkbcommon0 libxkbcommon-x11-0 libice6 libsm6 libxrender1 libfontconfig1 libinput10 libegl1 libmtdev1 libwayland-cursor0 libwayland-client0 libwayland-egl1 libxcomposite1 libpulse0 libpulse-mainloop-glib0 libopus0 libasound2 libxss1 libxcursor1 libsnappy1v5 libjpeg62-turbo libevent-2.1-6 libnspr4 libnss3 libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libgdk-pixbuf2.0-0 libcairo-gobject2 libatk1.0-0 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 libsybdb5 libpq5 libodbc1        
+        
+        
+
+COPY --from=builder /opt/qt/* /opt/qt/
 

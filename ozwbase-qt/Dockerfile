@@ -89,19 +89,39 @@ RUN git clone https://github.com/qt/qtmqtt.git \
 	&& git checkout $qtversion \
 	&& /opt/qt/$qtversion/bin/qmake QT_BUILD_PARTS="libs tools" CONFIG+=release\
 	&& make -j $concurrency \
-	&& make install	
-RUN strip --remove-section=.note.ABI-tag /opt/qt/*/lib/libQt5Core.so.5
+	&& make install
+
+RUN tar -cJvf debugfiles.tar.xz /opt/qt/$qtversion/**/*debug \
+	&& find /opt/qt/$qtversion/ -name "*.debug" -type f -delete \
+	&& strip --remove-section=.note.ABI-tag /opt/qt/$qtversion/lib/libQt5Core.so.5
 
 FROM debian:buster-slim
 
 LABEL maintainer="justin@dynam.ac"
 WORKDIR /opt
 
-RUN apt update && \
-	apt -y install joe mc git build-essential \
-        distcc wget libgl1 libpng16-16 libharfbuzz0b libxkbcommon0 libxkbcommon-x11-0 libice6 libsm6 libxrender1 libfontconfig1 libinput10 libegl1 libmtdev1 libwayland-cursor0 libwayland-client0 libwayland-egl1 libxcomposite1 libpulse0 libpulse-mainloop-glib0 libopus0 libasound2 libxss1 libxcursor1 libsnappy1v5 libjpeg62-turbo libevent-2.1-6 libnspr4 libnss3 libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libgdk-pixbuf2.0-0 libcairo-gobject2 libatk1.0-0 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 libsybdb5 libpq5 libodbc1        
-        
-        
+ARG distcchosts=''
+ARG qtversion="5.12.9"
+ARG concurrency="12"
 
-COPY --from=builder /opt/qt/* /opt/qt/
+RUN apt update && \
+	apt -y install joe mc git build-essential distcc wget libgl1 libpng16-16 \
+	libharfbuzz0b libxkbcommon0 libxkbcommon-x11-0 libice6 libsm6 libxrender1 \
+	libfontconfig1 libinput10 libegl1 libmtdev1 libwayland-cursor0 \
+	libwayland-client0 libwayland-egl1 libxcomposite1 libpulse0 \
+	libpulse-mainloop-glib0 libopus0 libasound2 libxss1 libxcursor1 \
+	libsnappy1v5 libjpeg62-turbo libevent-2.1-6 libnspr4 libnss3 \
+	libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libgdk-pixbuf2.0-0 \
+	libcairo-gobject2 libatk1.0-0 libpango-1.0-0 \
+	libpangocairo-1.0-0 libgtk-3-0 libsybdb5 libpq5 libodbc1 \
+	&& echo "/opt/qt/$qtversion/lib" > /etc/ld.so.conf.d/qt.conf \
+	&& echo "/opt/lib/" > /etc/ld.so.conf.d/opt.conf \
+	&& ldconfig -v
+
+RUN echo "hello $qtversion"
+	       
+        
+COPY --from=builder /opt/qt/$qtversion /opt/qt/$qtversion
+COPY --from=builder /opt/source/debugfiles.tar.xz /opt/
+ENV PATH "$PATH:/opt/qt/$qtversion/bin"
 

@@ -1,5 +1,11 @@
 FROM debian:buster-slim as builder
 
+ARG distcchosts=''
+ARG qtversion="5.12.9"
+ARG concurrency="12"
+
+ENV DISTCC_HOSTS=$distcchosts
+
 RUN apt -y update && apt upgrade && apt -y install joe mc build-essential \
 	distcc wget debhelper autotools-dev libdbus-1-dev libxcb1-dev \
 	libx11-xcb-dev libxrender-dev libssl-dev libudev-dev \
@@ -12,15 +18,17 @@ RUN apt -y update && apt upgrade && apt -y install joe mc build-essential \
 	libproxy-dev libxss-dev libsnappy-dev libsrtp2-dev libflac++-dev \
 	libopus-dev libspeex-dev libjsoncpp-dev libvpx-dev re2c \
 	libevent-dev libopenal-dev libpq-dev libxcb-xinerama0-dev \
-	libmariadbclient-dev libinput-dev gperf bison flex libnss3-dev python
+	libmariadbclient-dev libinput-dev gperf bison flex libnss3-dev python git
+
 RUN mkdir /opt/source/ 
 WORKDIR /opt/source/
-RUN wget https://download.qt.io/official_releases/qt/5.12/5.12.9/single/qt-everywhere-src-5.12.9.tar.xz \
-	&& tar -xf qt-everywhere-src-5.12.9.tar.xz
-ARG distcchosts=''
-ENV DISTCC_HOSTS=$distcchosts
+
+RUN wget https://download.qt.io/official_releases/qt/$(echo $qtversion | awk -F. '{ print $1"."$2 }')/$qtversion/single/qt-everywhere-src-$qtversion.tar.xz \
+	&& tar -xf qt-everywhere-src-$qtversion.tar.xz
+
 RUN cd /usr/local/bin && ln /usr/bin/distcc gcc && ln /usr/bin/distcc g++
-RUN cd /opt/source/qt-everywhere-src-5.12.9 \
+
+RUN cd /opt/source/qt-everywhere-src-$qtversion \
 	&& mkdir build \
 	&& cd build \
 	&& ../configure \
@@ -28,57 +36,59 @@ RUN cd /opt/source/qt-everywhere-src-5.12.9 \
 	-opensource \
 	-confirm-license \
 	-optimize-size \
-	-force-debug-info \
 	-no-pch \
-	--prefix=/opt/qt/5.12.9/ \
+	--prefix=/opt/qt/$qtversion/ \
 	-nomake examples \
-	-nomake tests 
+	-nomake tests \
+	-force-debug-info \
+	-separate-debug-info \
+	-strip \
+	-silent
+	
 
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtbase -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qttools -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtdeclarative -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtimageformats -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtmultimedia -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtscript -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtsensors -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qt3d -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtconnectivity -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtgamepad -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtlocation -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtquickcontrols2 -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtscxml -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtserialbus -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtwayland -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtxmlpatterns -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make module-qtwebengine -j 12
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build/ \
-	&& make -j 12
-
-RUN cd /opt/source/qt-everywhere-src-5.12.9/build \
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtbase -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qttools -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtdeclarative -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtimageformats -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtmultimedia -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtscript -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtsensors -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qt3d -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtconnectivity -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtgamepad -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtlocation -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtquickcontrols2 -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtscxml -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtserialbus -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtwayland -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtxmlpatterns -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make module-qtwebengine -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build/ \
+	&& make -j $concurrency
+RUN cd /opt/source/qt-everywhere-src-$qtversion/build \
 	&& make install
-RUN apt -y install git
 RUN git clone https://github.com/qt/qtmqtt.git \
 	&& cd qtmqtt \
-	&& git checkout 5.12.9 \
-	&& /opt/qt/5.12.9/bin/qmake QT_BUILD_PARTS="libs tools" CONFIG+=release\
-	&& make \
+	&& git checkout $qtversion \
+	&& /opt/qt/$qtversion/bin/qmake QT_BUILD_PARTS="libs tools" CONFIG+=release\
+	&& make -j $concurrency \
 	&& make install	
 RUN strip --remove-section=.note.ABI-tag /opt/qt/*/lib/libQt5Core.so.5
 
